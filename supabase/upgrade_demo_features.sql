@@ -19,6 +19,9 @@ create table if not exists public.job_tasks (
   created_at timestamptz not null default now()
 );
 
+alter table public.job_tasks add column if not exists suggested_person text not null default '' check (suggested_person in ('', 'Philip', 'Jason', 'Russel'));
+alter table public.job_tasks add column if not exists details text not null default '';
+
 alter table public.crew_members enable row level security;
 alter table public.job_tasks enable row level security;
 
