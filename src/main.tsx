@@ -68,7 +68,7 @@ function ConfiguredApp() {
     if (!userId) return;
     setLoading(true);
     const { data: profileData, error: profileError } = await supabase.from('profiles').select('id, company_id, full_name, role').eq('id', userId).single();
-    if (profileError || !profileData) { setNotice('Your login exists, but it has not been added to RidgePoint yet. Ask the owner to add your profile.'); setLoading(false); return; }
+    if (profileError || !profileData) { setNotice(`Profile could not load: ${profileError?.message ?? 'No matching profile was returned.'}`); setLoading(false); return; }
     setProfile(profileData as Profile);
     const [{ data: jobData }, { data: entryData }, { data: activeData }] = await Promise.all([
       supabase.from('jobs').select('id, title, client_name, address, color, status, archived').eq('company_id', profileData.company_id).eq('archived', false).order('created_at', { ascending: false }),
