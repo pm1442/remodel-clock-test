@@ -1,27 +1,16 @@
-# RidgePoint Remodel Clock - web test
+# Remodel Clock for RidgePoint Remodeling
 
-A small browser-based test for shared pending jobs and job-specific hourly time clock entries.
+A simple mobile-first job board and job-specific time clock.
 
-## Stack
+## Included in the first app shell
 
-- GitHub stores the code.
-- Vercel hosts the website.
-- Supabase holds users, jobs, and time data.
+- Color-coded pending jobs
+- Add a job with customer and address
+- Clock in and out against a selected job
+- Adjust a submitted time entry
+- Two-week Thursday-Wednesday timesheet view
+- RidgePoint colors: burgundy `#802931`, remodeling gray `#848484`, and white `#FFFFFF`
 
-## Vercel environment variables
+## Next production layer
 
-Add both variables in the Vercel project, for Production, Preview, and Development:
-
-```text
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-Supabase-publishable-key
-```
-
-These are public browser configuration values. Do not add the Supabase service-role/secret key.
-
-## Run locally, optional
-
-```powershell
-npm install
-npm run dev
-```
+Connect the app to Supabase for employee accounts and shared live data. Follow [SUPABASE_SETUP.md](SUPABASE_SETUP.md) when you are ready.
