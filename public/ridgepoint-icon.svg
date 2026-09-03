@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="RidgePoint Remodel Clock">
+  <rect width="512" height="512" rx="104" fill="#802931"/>
+  <path d="M112 239 256 116l144 123v153c0 18-14 32-32 32H144c-18 0-32-14-32-32V239Z" fill="#fff"/>
+  <path d="M213 424V294h86v130" fill="#802931"/>
+  <path d="M178 244h156" stroke="#802931" stroke-width="24" stroke-linecap="round"/>
+</svg>

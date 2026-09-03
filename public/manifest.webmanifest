@@ -1,0 +1,17 @@
+{
+  "name": "RidgePoint Remodel Clock",
+  "short_name": "RidgePoint Clock",
+  "description": "Jobs, task notes, and time tracking for RidgePoint Remodeling.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#802931",
+  "icons": [
+    {
+      "src": "/ridgepoint-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
