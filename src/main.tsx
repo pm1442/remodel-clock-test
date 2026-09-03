@@ -13,6 +13,7 @@ type Profile = { id: string; company_id: string; full_name: string; role: 'owner
 type JobTask = { id: string; job_id: string; title: string; suggested_person: '' | 'Philip' | 'Jason' | 'Russel'; details: string; completed: boolean };
 type TaskAttachment = { id: string; task_id: string; file_name: string; file_path: string; mime_type: string | null; file_size: number; created_at: string };
 type OffDay = { id: string; day: string; status: 'off' };
+type AssistantMessage = { role: 'assistant' | 'user'; content: string };
 
 const COLORS: Record<JobColor, { label: string; className: string }> = {
   green: { label: 'Ready', className: 'green' },
@@ -75,7 +76,10 @@ function App() {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [offDays, setOffDays] = useState<OffDay[]>([]);
   const [active, setActive] = useState<TimeEntry | null>(null);
-  const [tab, setTab] = useState<'jobs' | 'clock' | 'timesheet'>('jobs');
+  const [tab, setTab] = useState<'jobs' | 'clock' | 'timesheet' | 'assistant'>('jobs');
+  const [assistantInput, setAssistantInput] = useState('');
+  const [assistantBusy, setAssistantBusy] = useState(false);
+  const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([{ role: 'assistant', content: 'Hi — I can help you find RidgePoint jobs, task notes, and your time entries. What do you need?' }]);
   const [selectedJobId, setSelectedJobId] = useState('');
   const [openedJobId, setOpenedJobId] = useState('');
   const [crewColors, setCrewColors] = useState({ Philip: 'burgundy', Jason: 'blue', Russel: 'green' });
@@ -200,12 +204,33 @@ function App() {
     const { data, error } = await supabase.storage.from('task-attachments').createSignedUrl(attachment.file_path, 120);
     if (error || !data?.signedUrl) setNotice(error?.message ?? 'Could not open that file.'); else window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
   }
+  async function askAssistant(event: FormEvent) {
+    event.preventDefault();
+    const question = assistantInput.trim();
+    if (!question || !session || !profile || assistantBusy) return;
+    const nextMessages = [...assistantMessages, { role: 'user' as const, content: question }];
+    setAssistantMessages(nextMessages); setAssistantInput(''); setAssistantBusy(true);
+    const context = {
+      user: profile.full_name,
+      jobs: jobs.map((job) => ({ title: job.title, client: job.client_name, address: job.address, status: job.status, tasks: (tasks[job.id] ?? []).map((task) => ({ title: task.title, details: task.details, suggestedPerson: task.suggested_person || 'Not assigned', completed: task.completed })) })),
+      timeEntries: entries.slice(0, 80).map((entry) => ({ job: jobTitle(entry), clockIn: entry.clock_in, clockOut: entry.clock_out, hours: toHours(entry).toFixed(2), breakMinutes: Math.round((entry.paused_seconds ?? 0) / 60) })),
+      offDays: offDays.slice(0, 40),
+    };
+    try {
+      const response = await fetch('/api/ridgepoint-assistant', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ question, context }) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error ?? 'The assistant could not answer right now.');
+      setAssistantMessages((messages) => [...messages, { role: 'assistant', content: result.answer ?? 'I could not find an answer in RidgePoint data.' }]);
+    } catch (error) {
+      setAssistantMessages((messages) => [...messages, { role: 'assistant', content: `Sorry — ${error instanceof Error ? error.message : 'the assistant could not answer right now.'}` }]);
+    } finally { setAssistantBusy(false); }
+  }
   async function signOut() { await supabase.auth.signOut(); }
 
   if (!session) return <SignIn onSignedIn={setSession} />;
   if (loading) return <main className="loading">Loading RidgePoint Remodel Clock...</main>;
   if (!profile) return <main className="loading"><p>{notice}</p><button onClick={signOut}>Sign out</button></main>;
-  return <main className="app-shell"><header><div className="header-brand"><img className="header-logo" src="/pwa-icon-3.png" alt="RidgePoint" /><span>Jobs &amp; Clock</span></div><div className="user"><strong>{profile.full_name}</strong><button className="text-button" onClick={signOut}>Sign out</button></div></header><nav>{(['jobs', 'clock', 'timesheet'] as const).map((item) => <button key={item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>{item === 'jobs' ? 'Jobs' : item === 'clock' ? 'Time clock' : 'Timesheet'}</button>)}</nav>{notice && <div className="notice">{notice}<button onClick={() => setNotice('')}>Dismiss</button></div>}
+  return <main className="app-shell"><header><div className="header-brand"><img className="header-logo" src="/pwa-icon-3.png" alt="RidgePoint" /><span>Jobs &amp; Clock</span></div><div className="user"><strong>{profile.full_name}</strong><button className="text-button" onClick={signOut}>Sign out</button></div></header><nav>{(['jobs', 'clock', 'timesheet', 'assistant'] as const).map((item) => <button key={item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>{item === 'jobs' ? 'Jobs' : item === 'clock' ? 'Time clock' : item === 'timesheet' ? 'Timesheet' : 'Ask RidgePoint'}</button>)}</nav>{notice && <div className="notice">{notice}<button onClick={() => setNotice('')}>Dismiss</button></div>}
     {tab === 'jobs' && <section>
       {openedJobId ? <>
         <button className="ghost" onClick={() => setOpenedJobId('')}>Back to jobs</button>
@@ -222,6 +247,7 @@ function App() {
     </section>}
     {tab === 'clock' && <section className="clock"><p className="kicker">TIME CLOCK</p><h1>{active ? (active.paused_at ? 'Your clock is paused' : 'You are clocked in') : 'Clock time'}</h1><div className="clock-status"><small>{active?.paused_at ? 'CLOCK PAUSED' : active ? 'CLOCKED IN AT' : 'SELECT A JOB'}</small><strong>{active ? formatTime(active.clock_in) : 'Ready when you are'}</strong><span>{active ? activeJob?.title ?? 'Current job' : currentJob?.title ?? 'Choose a job below.'}</span></div>{!active && <label className="job-select">Working on<select value={selectedJobId} onChange={(e) => setSelectedJobId(e.target.value)}><option value="">Select a job</option>{jobs.map((job) => <option key={job.id} value={job.id}>{job.title} - {job.client_name}</option>)}</select></label>}{active ? <div className="clock-actions"><button className="ghost" onClick={active.paused_at ? resumeClock : pauseClock}>{active.paused_at ? 'Resume clock' : 'Pause clock'}</button><button onClick={clockOut}>Clock out</button></div> : <button className="wide" onClick={clockIn}>Clock in</button>}<p className="helper">Your selected job is locked for this shift. Pause time for lunch or an interruption; paused time is not counted.</p></section>}
     {tab === 'timesheet' && <section><p className="kicker">{isPastPeriod ? 'PAST PAY PERIOD' : 'CURRENT PAY PERIOD'}</p><h1>{formatDate(start)} - {formatDate(end)}</h1><p className="period-note">Two weeks, Thursday through Wednesday</p><label className="period-picker">View pay period<select value={periodOffset} onChange={(event) => setPeriodOffset(Number(event.target.value))}>{periodOptions.map((period) => <option key={period.offset} value={period.offset}>{period.offset === 0 ? 'Current: ' : ''}{formatDate(period.start)} - {formatDate(period.end)}</option>)}</select></label>{isPastPeriod && <p className="past-period-note">Past pay period. Only the account owner can add or adjust these hours.</p>}<div className="hours"><strong>{hours.toFixed(2)}</strong><span>Total hours</span></div><div className="overtime-summary"><span>Regular: {regularHours.toFixed(2)} h</span><span>Overtime: {overtimeHours.toFixed(2)} h</span></div><div className="timesheet-actions">{canEditPeriod && <button onClick={addHours}>Add hours for a day</button>}<button className="ghost compact" onClick={() => setShowJobTotals(!showJobTotals)}>{showJobTotals ? 'Hide job breakdown' : 'View hours by job'}</button></div>{showJobTotals && <div className="job-breakdown"><strong>Hours by job</strong>{jobTotals.map((job) => <div key={job.title}><span>{job.title}</span><b>{job.hours.toFixed(2)} h</b></div>)}</div>}<div className="entries">{(periodEntries.length || periodOffDays.length) ? <>{periodEntries.map((entry) => <article className="entry" key={entry.id}><div><h2>{jobTitle(entry)}</h2><p>{formatDate(new Date(entry.clock_in))} | {formatTime(entry.clock_in)}{entry.clock_out ? ` - ${formatTime(entry.clock_out)}` : ' - still clocked in'}</p></div><div><strong>{toHours(entry).toFixed(2)} h</strong>{entry.clock_out && canEditPeriod && <div className="entry-actions"><button className="text-button" onClick={() => adjust(entry)}>Adjust hours</button><button className="text-button delete-button" onClick={() => deleteHours(entry)}>Delete</button></div>}</div></article>)}{periodOffDays.map((offDay) => <article className="entry off-entry" key={offDay.id}><div><h2>Off</h2><p>{formatDate(new Date(`${offDay.day}T12:00:00`))}</p></div>{canEditPeriod && <button className="text-button delete-button" onClick={() => deleteOffDay(offDay)}>Remove</button>}</article>)}</> : <div className="empty">No time entered in this pay period.</div>}</div><div className="timesheet-actions"><button className="wide ghost" onClick={() => printTimesheet('payroll')}>Print/share payroll timesheet</button><button className="wide ghost" onClick={() => printTimesheet('jobs')}>Print/share job-hour summary</button></div></section>}
+    {tab === 'assistant' && <section className="assistant-page"><div className="assistant-intro"><p className="kicker">RIDGEPOINT ASSISTANT</p><h1>How can I help?</h1><p>Ask about your RidgePoint jobs, task notes, and your time entries.</p></div><div className="assistant-prompts">{['What tasks are still open?', 'What jobs are in progress?', 'Show my most recent time entries.'].map((prompt) => <button className="ghost compact" key={prompt} onClick={() => setAssistantInput(prompt)}>{prompt}</button>)}</div><div className="assistant-thread" aria-live="polite">{assistantMessages.map((message, index) => <article className={`assistant-message ${message.role}`} key={`${message.role}-${index}`}><strong>{message.role === 'assistant' ? 'RidgePoint' : profile.full_name}</strong><p>{message.content}</p></article>)}{assistantBusy && <article className="assistant-message assistant"><strong>RidgePoint</strong><p>Looking through your RidgePoint information…</p></article>}</div><form className="assistant-compose" onSubmit={askAssistant}><textarea value={assistantInput} onChange={(event) => setAssistantInput(event.target.value)} placeholder="Ask about jobs, task notes, or time…" rows={2} disabled={assistantBusy} /><button disabled={assistantBusy || !assistantInput.trim()}>{assistantBusy ? 'Thinking…' : 'Ask'}</button></form><p className="assistant-note">Answers use RidgePoint information available to your signed-in account. This assistant does not search the public web.</p></section>}
     {printMode && <section className="print-sheet">
       <div className="preview-bar"><strong>Print-ready preview</strong><button className="text-button" onClick={() => setPrintMode(null)}>Close preview</button></div>
       <div className="print-document" ref={printDocumentRef}>
