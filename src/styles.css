@@ -126,6 +126,10 @@ h1 { font-size: clamp(27px, 4vw, 34px); line-height: 1.1; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
 
+.signin-card .signin-brand { display: flex; align-items: center; gap: 12px; }
+.signin-card .signin-brand img { display: block; width: 48px; height: 48px; border-radius: 12px; object-fit: cover; }
+.signin-card .signin-brand span { color: #2d2526; font-size: 22px; font-weight: 850; letter-spacing: -.45px; }
+
 /* Compact, professional payroll print header */
 .print-document .print-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(210px, 280px); gap: 24px; align-items: start; padding-bottom: 18px; border-bottom: 2px solid #802931; }
 .print-document .print-brand { display: flex; align-items: center; gap: 16px; min-width: 0; }

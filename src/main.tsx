@@ -65,7 +65,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (session: Session) => void }) {
     if (signInError || !data.session) setError(signInError?.message ?? 'Unable to sign in.');
     else onSignedIn(data.session);
   }
-  return <main className="signin-shell"><section className="signin-card"><img className="signin-logo" src="/ridgepoint-remodeling-logo.png" alt="RidgePoint Remodeling" /><h1>Remodel Clock</h1><p>Sign in to see jobs and clock time for RidgePoint Remodeling.</p><form onSubmit={submit}><label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label><label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>{error && <p className="form-error">{error}</p>}<button disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button></form></section></main>;
+  return <main className="signin-shell"><section className="signin-card"><div className="signin-brand"><img src="/pwa-icon-3.png" alt="RidgePoint" /><span>Jobs &amp; Clock</span></div><p>Sign in to see jobs and clock time for RidgePoint Remodeling.</p><form onSubmit={submit}><label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label><label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>{error && <p className="form-error">{error}</p>}<button disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button></form></section></main>;
 }
 
 function App() {
