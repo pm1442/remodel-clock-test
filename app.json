@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Remodel Clock",
+    "slug": "remodel-clock",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": true },
+    "android": { "adaptiveIcon": { "backgroundColor": "#F7F6F2" } }
+  }
+}
