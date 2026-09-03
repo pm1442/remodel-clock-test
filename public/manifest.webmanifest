@@ -8,7 +8,7 @@
   "theme_color": "#802931",
   "icons": [
     {
-      "src": "/ridgepoint-icon.png",
+      "src": "/pwa-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
