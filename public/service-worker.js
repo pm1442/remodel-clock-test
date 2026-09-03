@@ -1,7 +1,7 @@
-const CACHE_NAME = 'ridgepoint-clock-v4';
+const CACHE_NAME = 'ridgepoint-clock-v5';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/', '/manifest.webmanifest', '/pwa-icon-2.png'])));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/', '/manifest.webmanifest', '/pwa-icon-3.png'])));
   self.skipWaiting();
 });
 
