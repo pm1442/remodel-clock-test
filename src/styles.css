@@ -219,6 +219,10 @@ section { padding: 32px 34px 46px; }.kicker { color: #7d898e; letter-spacing: 1.
 /* Account recovery and updates */
 .account-card { position: relative; }.account-card form, .account-recovery { display: grid; gap: 14px; }.account-card h2 { margin-top: 4px; }.account-helper, .account-recovery p { margin-top: 7px; color: #718085; font-size: 13px; line-height: 1.45; }.account-card label small { color: #7d898e; font-size: 11px; font-weight: 600; }.account-close { justify-self: end; }
 
+/* Owner time review */
+.timesheet-viewer { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #dce4e6; background: #f7fafb; }.timesheet-viewer strong { display: block; margin-top: 4px; color: #33464b; font-size: 17px; }.timesheet-viewer span { display: block; margin-top: 4px; color: #728085; font-size: 13px; }.timesheet-viewer label { width: min(290px, 100%); }.timesheet-viewer select { border-color: #afc2c5; background: #fff; color: #30444a; font-weight: 750; }
+@media (max-width: 580px) { .timesheet-viewer { display: grid; gap: 14px; padding-top: 18px; padding-bottom: 18px; }.timesheet-viewer label { width: 100%; } }
+
 /* Compact, professional payroll print header */
 .print-document .print-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(210px, 280px); gap: 24px; align-items: start; padding-bottom: 18px; border-bottom: 2px solid #802931; }
 .print-document .print-brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
