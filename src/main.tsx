@@ -203,20 +203,22 @@ function App() {
     return html2canvas(printDocumentRef.current, { backgroundColor: '#ffffff', scale: 2, useCORS: true });
   }
   async function captureShareImage() {
-    const sheet = await capturePayrollTimesheet();
-    const outerMargin = 72;
-    const sheetWidth = 1296;
-    const scale = sheetWidth / sheet.width;
-    const sheetHeight = Math.round(sheet.height * scale);
-    const canvas = document.createElement('canvas');
-    canvas.width = sheetWidth + outerMargin * 2;
-    canvas.height = sheetHeight + outerMargin * 2;
-    const context = canvas.getContext('2d');
-    if (!context) throw new Error('Could not prepare the shared image.');
-    context.fillStyle = '#edf3f2'; context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#ffffff'; context.fillRect(outerMargin, outerMargin, sheetWidth, sheetHeight);
-    context.drawImage(sheet, outerMargin, outerMargin, sheetWidth, sheetHeight);
-    return canvas;
+    if (!printDocumentRef.current) throw new Error('Timesheet preview is not ready yet.');
+    const staging = document.createElement('div');
+    const clone = printDocumentRef.current.cloneNode(true) as HTMLDivElement;
+    staging.style.cssText = 'position:fixed;left:-10000px;top:0;width:900px;padding:0;background:#fff;pointer-events:none;';
+    clone.style.width = '900px'; clone.style.maxWidth = 'none';
+    staging.appendChild(clone); document.body.appendChild(staging);
+    try {
+      const sheet = await html2canvas(clone, { backgroundColor: '#ffffff', scale: 1.5, useCORS: true, windowWidth: 1024 });
+      const outerMargin = 72; const sheetWidth = 1296; const scale = sheetWidth / sheet.width; const sheetHeight = Math.round(sheet.height * scale);
+      const canvas = document.createElement('canvas'); canvas.width = sheetWidth + outerMargin * 2; canvas.height = sheetHeight + outerMargin * 2;
+      const context = canvas.getContext('2d'); if (!context) throw new Error('Could not prepare the shared image.');
+      context.fillStyle = '#edf3f2'; context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = '#ffffff'; context.fillRect(outerMargin, outerMargin, sheetWidth, sheetHeight);
+      context.drawImage(sheet, outerMargin, outerMargin, sheetWidth, sheetHeight);
+      return canvas;
+    } finally { staging.remove(); }
   }
   function downloadBlob(blob: Blob, fileName: string) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = fileName; link.click(); URL.revokeObjectURL(url); }
   async function saveTimesheetImage() { try { setExportBusy(true); const canvas = await capturePayrollTimesheet(); const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png')); if (!blob) throw new Error('Could not create image.'); downloadBlob(blob, `ridgepoint-timesheet-${start.toISOString().slice(0, 10)}.png`); } catch (error) { setNotice(error instanceof Error ? error.message : 'Could not save image.'); } finally { setExportBusy(false); } }
