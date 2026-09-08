@@ -1,26 +1,18 @@
-# One-time email code for account changes
+# Account recovery links
 
-The Account button in the app verifies the user's existing email before it lets them change their sign-in email or password.
+The Account button sends Supabase's normal secure, single-use reset link to the user's existing email. Opening that link returns the user to the app and unlocks their email, password, and display-name updates.
 
 ## One-time Supabase SQL
 
 Run `supabase/upgrade_account_settings.sql` in Supabase Dashboard > SQL Editor.
 
-## Make the recovery email send a code
+## URL Configuration
 
-1. In Supabase, open **Authentication > Email Templates**.
-2. Choose **Reset Password**.
-3. Replace the email body with this:
+1. In Supabase, open **Authentication > URL Configuration**.
+2. Set **Site URL** to your production Vercel app address, such as `https://remodel-clock.vercel.app`.
+3. Add that exact address under **Redirect URLs** too.
+4. Save.
 
-```html
-<h2>Your RidgePoint verification code</h2>
-<p>Enter this one-time code in Jobs &amp; Clock to update your account:</p>
-<h1 style="letter-spacing: 4px;">{{ .Token }}</h1>
-<p>If you did not request this code, you can safely ignore this email.</p>
-```
-
-4. Save the template.
-
-Use `{{ .Token }}` exactly as shown. It tells Supabase to send a one-time code instead of its usual reset-password link.
+No custom SMTP or email-template editing is needed. Supabase's default Reset Password email is used.
 
 When a user changes their sign-in email, Supabase may send a separate confirmation email to the new address before the new email can be used for sign-in.

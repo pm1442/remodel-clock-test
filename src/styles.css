@@ -217,7 +217,7 @@ section { padding: 32px 34px 46px; }.kicker { color: #7d898e; letter-spacing: 1.
 @media (max-width: 580px) { .receipt-upload { padding: 17px; }.receipt-picker > div { grid-template-columns: 1fr; }.receipt-card { grid-template-columns: 1fr auto; gap: 8px; }.receipt-card > span { justify-self: start; }.receipt-card > div { grid-column: 1 / -1; grid-row: 2; }.receipt-card small { grid-column: 2; grid-row: 1; } }
 
 /* Account recovery and updates */
-.account-card { position: relative; }.account-card form { display: grid; gap: 14px; }.account-card h2 { margin-top: 4px; }.account-helper { margin-top: 7px; color: #718085; font-size: 13px; line-height: 1.45; }.account-card label small { color: #7d898e; font-size: 11px; font-weight: 600; }.account-close { justify-self: end; }
+.account-card { position: relative; }.account-card form, .account-recovery { display: grid; gap: 14px; }.account-card h2 { margin-top: 4px; }.account-helper, .account-recovery p { margin-top: 7px; color: #718085; font-size: 13px; line-height: 1.45; }.account-card label small { color: #7d898e; font-size: 11px; font-weight: 600; }.account-close { justify-self: end; }
 
 /* Compact, professional payroll print header */
 .print-document .print-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(210px, 280px); gap: 24px; align-items: start; padding-bottom: 18px; border-bottom: 2px solid #802931; }
