@@ -59,6 +59,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (session: Session) => void }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError('');
@@ -67,7 +68,14 @@ function SignIn({ onSignedIn }: { onSignedIn: (session: Session) => void }) {
     if (signInError || !data.session) setError(signInError?.message ?? 'Unable to sign in.');
     else onSignedIn(data.session);
   }
-  return <main className="signin-shell"><section className="signin-card"><div className="signin-brand"><img src="/pwa-icon-3.png" alt="RidgePoint" /><span>Jobs &amp; Clock</span></div><p>Sign in to see jobs and clock time for RidgePoint Remodeling.</p><form onSubmit={submit}><label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label><label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>{error && <p className="form-error">{error}</p>}<button disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button></form></section></main>;
+  async function sendPasswordReset() {
+    if (!email.trim()) { setError('Enter your sign-in email first, then choose Forgot password.'); return; }
+    setBusy(true); setError('');
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin });
+    setBusy(false);
+    if (resetError) setError(resetError.message); else setResetSent(true);
+  }
+  return <main className="signin-shell"><section className="signin-card"><div className="signin-brand"><img src="/pwa-icon-3.png" alt="RidgePoint" /><span>Jobs &amp; Clock</span></div><p>Sign in to see jobs and clock time for RidgePoint Remodeling.</p><form onSubmit={submit}><label>Email<input type="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setResetSent(false); }} required /></label><label>Password<input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>{error && <p className="form-error">{error}</p>}{resetSent && <p className="reset-success">Check your email for a secure password-reset link.</p>}<button disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button><button type="button" className="signin-reset" disabled={busy} onClick={() => void sendPasswordReset()}>Forgot password?</button></form></section></main>;
 }
 
 function App() {
