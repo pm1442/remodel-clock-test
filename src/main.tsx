@@ -202,9 +202,25 @@ function App() {
     if (!printDocumentRef.current) throw new Error('Timesheet preview is not ready yet.');
     return html2canvas(printDocumentRef.current, { backgroundColor: '#ffffff', scale: 2, useCORS: true });
   }
+  async function captureShareImage() {
+    const sheet = await capturePayrollTimesheet();
+    const outerMargin = 72;
+    const sheetWidth = 1296;
+    const scale = sheetWidth / sheet.width;
+    const sheetHeight = Math.round(sheet.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = sheetWidth + outerMargin * 2;
+    canvas.height = sheetHeight + outerMargin * 2;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Could not prepare the shared image.');
+    context.fillStyle = '#edf3f2'; context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = '#ffffff'; context.fillRect(outerMargin, outerMargin, sheetWidth, sheetHeight);
+    context.drawImage(sheet, outerMargin, outerMargin, sheetWidth, sheetHeight);
+    return canvas;
+  }
   function downloadBlob(blob: Blob, fileName: string) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = fileName; link.click(); URL.revokeObjectURL(url); }
   async function saveTimesheetImage() { try { setExportBusy(true); const canvas = await capturePayrollTimesheet(); const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png')); if (!blob) throw new Error('Could not create image.'); downloadBlob(blob, `ridgepoint-timesheet-${start.toISOString().slice(0, 10)}.png`); } catch (error) { setNotice(error instanceof Error ? error.message : 'Could not save image.'); } finally { setExportBusy(false); } }
-  async function shareTimesheet() { try { setExportBusy(true); const canvas = await capturePayrollTimesheet(); const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png')); if (!blob) throw new Error('Could not create image.'); const file = new File([blob], `ridgepoint-timesheet-${start.toISOString().slice(0, 10)}.png`, { type: 'image/png' }); if (navigator.canShare?.({ files: [file] }) && navigator.share) await navigator.share({ title: 'RidgePoint timesheet', files: [file] }); else downloadBlob(blob, file.name); } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) setNotice(error instanceof Error ? error.message : 'Could not share timesheet.'); } finally { setExportBusy(false); } }
+  async function shareTimesheet() { try { setExportBusy(true); const canvas = await captureShareImage(); const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', .94)); if (!blob) throw new Error('Could not create image.'); const file = new File([blob], `ridgepoint-timesheet-${start.toISOString().slice(0, 10)}.jpg`, { type: 'image/jpeg' }); if (navigator.canShare?.({ files: [file] }) && navigator.share) await navigator.share({ title: 'RidgePoint timesheet', files: [file] }); else downloadBlob(blob, file.name); } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) setNotice(error instanceof Error ? error.message : 'Could not share timesheet.'); } finally { setExportBusy(false); } }
   async function saveTimesheetPdf() { try { setExportBusy(true); const canvas = await capturePayrollTimesheet(); const image = canvas.toDataURL('image/png'); const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' }); const pageWidth = pdf.internal.pageSize.getWidth(); const pageHeight = pdf.internal.pageSize.getHeight(); const margin = 28; const width = pageWidth - margin * 2; const height = canvas.height * width / canvas.width; pdf.addImage(image, 'PNG', margin, margin, width, Math.min(height, pageHeight - margin * 2)); pdf.save(`ridgepoint-timesheet-${start.toISOString().slice(0, 10)}.pdf`); } catch (error) { setNotice(error instanceof Error ? error.message : 'Could not save PDF.'); } finally { setExportBusy(false); } }
 
   async function saveJob(event: FormEvent) {
