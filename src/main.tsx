@@ -211,7 +211,9 @@ function App() {
     staging.appendChild(clone); document.body.appendChild(staging);
     try {
       const sheet = await html2canvas(clone, { backgroundColor: '#ffffff', scale: 1.5, useCORS: true, windowWidth: 1024 });
-      const outerMargin = 72; const sheetWidth = 1296; const scale = sheetWidth / sheet.width; const sheetHeight = Math.round(sheet.height * scale);
+      const outerMargin = 44; const maxImageWidth = 1080; const maxImageHeight = 1920;
+      const widthScale = (maxImageWidth - outerMargin * 2) / sheet.width; const heightScale = (maxImageHeight - outerMargin * 2) / sheet.height;
+      const scale = Math.min(widthScale, heightScale); const sheetWidth = Math.round(sheet.width * scale); const sheetHeight = Math.round(sheet.height * scale);
       const canvas = document.createElement('canvas'); canvas.width = sheetWidth + outerMargin * 2; canvas.height = sheetHeight + outerMargin * 2;
       const context = canvas.getContext('2d'); if (!context) throw new Error('Could not prepare the shared image.');
       context.fillStyle = '#edf3f2'; context.fillRect(0, 0, canvas.width, canvas.height);
