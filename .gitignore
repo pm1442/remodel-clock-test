@@ -1,0 +1,14 @@
+# Local credentials and machine-specific files
+.env
+.env.local
+.env.*.local
+
+# Installed and generated files
+node_modules/
+dist/
+.expo/
+tsconfig.tsbuildinfo
+
+# Operating-system files
+.DS_Store
+Thumbs.db

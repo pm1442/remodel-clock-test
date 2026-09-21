@@ -254,3 +254,41 @@ section { padding: 32px 34px 46px; }.kicker { color: #7d898e; letter-spacing: 1.
   .print-document .print-meta span { margin: 0; align-self: center; }
   .print-document .print-meta strong { grid-column: 2; }
 }
+
+/* Payroll print: place each time block beside the job it belongs to. */
+.print-time-head,
+.print-time-row {
+  grid-template-columns: 92px minmax(0, .7fr) minmax(0, 1.3fr) 62px 64px;
+}
+.print-time-values,
+.print-job-values {
+  display: grid;
+  gap: 2px;
+}
+.print-job-values {
+  color: #802931;
+}
+.print-job-values span {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.print-break-values {
+  color: #6c6162;
+}
+.print-time-row.print-off-row .print-time-values,
+.print-time-row.print-off-row .print-job-values {
+  color: #7b7072;
+  font-weight: 750;
+}
+
+@media (max-width: 580px) {
+  .print-time-head,
+  .print-time-row {
+    grid-template-columns: 58px minmax(0, .75fr) minmax(0, 1.25fr) 38px 44px;
+    gap: 5px;
+  }
+  .print-job-values span {
+    font-size: 10px;
+  }
+}
